@@ -2,12 +2,15 @@ package net.engineeringdigest.journalApp.controller;
 
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.UserEntity;
+import net.engineeringdigest.journalApp.repository.UserEntryRepo;
 import net.engineeringdigest.journalApp.service.JournalEntryService;
 import net.engineeringdigest.journalApp.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -18,27 +21,28 @@ import java.util.*;
 public class UserController {
     @Autowired
     private UserService userService;
-    @GetMapping
-    public List<UserEntity>getAllUsers(){
-        return userService.getAll();
-    }
 
-    @PostMapping
-    public void createUser(@RequestBody UserEntity user){
-        userService.SaveEntry(user);
-    }
+    @Autowired
+    private UserEntryRepo userEntryRepo;
 
-    @PutMapping("/{userName}")
-    public ResponseEntity<?> editUser(@RequestBody UserEntity user, @PathVariable String userName){
+
+
+    @PutMapping
+    public ResponseEntity<?> editUser(@RequestBody UserEntity user){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
         UserEntity userInDb = userService.findByUserName(userName);
-        if(userInDb!=null)
-        {
             userInDb.setUserName(user.getUserName());
             userInDb.setPassword(user.getPassword());
             userService.SaveEntry(userInDb);
-        }
         return new ResponseEntity<UserEntity>(userInDb,HttpStatus.OK);
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser(@RequestBody UserEntity user){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        userEntryRepo.deleteByUserName(authentication.getName());
+        return new ResponseEntity<UserEntity>(HttpStatus.NO_CONTENT);
+    }
 
 }
