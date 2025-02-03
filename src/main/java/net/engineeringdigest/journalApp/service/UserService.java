@@ -34,12 +34,7 @@ public class UserService {
             userRepo.save(user);
         }catch (Exception e)
         {
-
-            log.info("Duplicate User Added");
-            log.warn("Duplicate User Added");
             log.error("Duplicate User Added");
-            log.trace("Duplicate User Added");
-            log.debug("Duplicate User Added");
         }
 
     }
